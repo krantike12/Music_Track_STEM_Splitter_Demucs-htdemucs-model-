@@ -1,0 +1,137 @@
+.inputForm{
+    background:  -webkit-radial-gradient(circle, hsl(0deg 0% 0%) 0%, hsl(227deg 37.2% 36.39%) 80%);
+    min-height: 250px;
+    max-height: fit-content;
+    opacity :  0.3px;
+    background-repeat: repeat;
+    border: 0.5px solid rgb(134, 134, 134);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.audioDiv{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: aliceblue;
+    border-radius: 12px;
+}
+
+.downloadImg{
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+    padding: 5px;
+}
+.placeholder {
+    display: flex;
+    gap: 30px;
+    color: white;
+    padding: 10px;
+
+
+}
+
+#image{
+    position: relative;
+    width: 300px;
+    height: 300px;
+
+}
+body{
+    background-color: #030304;
+    background-attachment: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    overflow: scroll;
+}
+
+#mainTitle{
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    
+}
+
+#mainHead{
+    font: 25px Switzer ,sans-serif;
+}
+#form{
+    position: relative;
+}
+
+#controls{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+#waveform{
+    width: 50%;
+    height: 200px;
+}
+
+.custom-file-label{
+    display: inline-block;
+    background-color: #007bff;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 10px;
+    color: rgb(215, 223, 242);
+}
+
+.indicator{
+    display: flex;
+    justify-content: center;
+        color: white;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+#fileDisplay{
+    color : white;
+    display: flex;
+    justify-content: center;
+}
+
+#uploadButton{
+    display: inline-block;
+    background-color: #007bff;
+    padding: 11px;
+    cursor: pointer;
+    border-radius: 10px;
+    border : none;
+    color: white;
+    font-family: sans-serif;
+}
+
+#sectionArea{
+    height: auto;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 5px;
+    background-color: #2222229e;
+}
+
+#progressBar{
+    border-radius: 10px;
+    width: 20%;
+    height: 10px;
+    overflow: hidden;
+    display: block;
+}
+
+
+@media screen and (max-width: 480px) {
+    .placeholder{
+        display: block;
+    }
+    
+}

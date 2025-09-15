@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music is Easy</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="mainTitle" style="padding : 10px; display: flex">
+        <h3 id="mainHead" style="text-transform:uppercase;">Best Way to Split your tracks into Stems!!</h3>
+        <p id="subHead" style="margin-top: -10px;">Music is easy with the right tools and right dudes.</p>
+    </div>
+    <div class="inputForm" >
+        <div id="circle">
+
+        </div>
+        <form id="form" enctype="multipart/form-data">
+            <input type="file" accept="audio/*" name="myFile" id="fileInput" hidden> 
+            <div id="inputFile"></div>
+            <span id="DragDisclaimer" style="color: white;">"Drag and Drop your Music File to get started!!"</span>
+            <p id="fileDisplay">No file Chosen</p>
+            <div id="controls">
+            <label for="fileInput" class="custom-file-label">Browse Files</label>
+            <button id="uploadButton" type="submit">Upload</button>
+            </div>
+        </form>
+
+        
+    </div>
+
+    <div id="sectionArea">
+        <div class="indicator">
+            <h3 id="fileIndicator" style="display: none;">Your file is being processed kindly wait!</h3>
+            <progress value="0" max="100" id="progressBar" style="display: none;"></progress>
+         </div>
+    <div id="prevArea" style="display: none;">
+        <p>Your Audio Files</p>
+        <div id="mainBlock" style="display: flex; flex-direction :column">
+
+        </div>
+        <div id="lilData">
+
+        </div>
+    </div>
+    </div>
+
+    
+
+    <script type="module">
+
+        //drag and drop
+        let droppedFile = ''
+        const inputForm = document.querySelector('.inputForm')
+        inputForm.addEventListener("dragover", (e)=>{
+                e.preventDefault()
+                inputForm.style.opacity = 0.5
+
+                
+        })
+
+        inputForm.addEventListener("dragleave", (e)=>{
+            e.preventDefault()
+            inputForm.style.opacity = 1
+            console.log("Drag ended")
+        })
+
+        function handleFiles(files){
+            for ( let i =0; i < files.length; i++){
+                    const fileInfo = files[i]
+                    console.log("file : " , fileInfo.name)
+            }
+
+        }
+       
+        inputForm.addEventListener("drop" , (e) => {
+        e.preventDefault()
+        const disclaimer = document.getElementById('DragDisclaimer')
+        disclaimer.style.display = "none"
+        const files = e.dataTransfer.files
+                if(files.length > 0) {
+                    handleFiles(files)
+                    droppedFile = files[0]
+                    fileDisplay.textContent = files[0].name
+
+                }
+
+                inputForm.style.opacity = 1
+
+        })
+
+         //Hover Effect on Div
+       inputForm.addEventListener("mousemove", (e) =>{
+           const rect = e.currentTarget.getBoundingClientRect()
+          let x = e.clientX - rect.left
+          let y = e.clientY - rect.top
+           //console.log("X : ", x , "Y : ", y)
+                      
+        })
+ 
+
+
+        //different section
+
+        let preivewData = ''
+        const prevArea = document.getElementById('prevArea')
+        const fileDisplay = document.getElementById('fileDisplay')
+        const inputFile = document.getElementById('inputFile')
+        let form = document.getElementById('form')
+        const file = document.getElementById('fileInput')
+        const indicator = document.getElementById('fileIndicator')
+        form.addEventListener("change", ()=> {
+            let existingImage = inputFile.querySelector('img')
+            if(!existingImage){
+                  const Fileimg = document.createElement('img')
+            Fileimg.src = "https://media.tenor.com/ofI65IFMa5QAAAAj/musical-notes.gif"
+                        inputFile.appendChild(Fileimg)
+                        inputFile.style.display = "flex"
+                        inputFile.style.justifyContent = "center"
+                        inputFile.style.alignItems = "center"
+            }
+            else{
+                existingImage.src = "https://media.tenor.com/ofI65IFMa5QAAAAj/musical-notes.gif"
+            }
+            
+
+            fileDisplay.innerText = file.files[0]?.name || "No FIle chosen"
+         })
+
+
+        form.addEventListener("submit", (e) => {
+            const progressBar = document.getElementById('progressBar')
+
+            e.preventDefault()
+            if(file.files.length === 0 && !droppedFile){
+                indicator.style.display = "block"
+                indicator.innerText = "Please select a file to upload"
+                return
+            }
+            const btn = document.getElementById('uploadButton')
+            btn.disabled = true;
+            const formdata = new FormData()
+            const selectedFile = droppedFile || file.files[0]
+            formdata.append("myFile", selectedFile)
+            indicator.style.display = "block"
+            progressBar.style.display = "block"
+
+            const xr = new XMLHttpRequest()
+            xr.open("POST", "http://127.0.0.1:5000/upload-music")
+
+            xr.upload.onprogress = (e) => {
+                if(e.lengthComputable){
+                    let percent = Math.round((e.loaded / e.total) * 100)
+                    console.log(percent)
+                    if (percent > 90) percent = 90
+                        progressBar.value = percent
+                        indicator.innerText = `Uploading... ${percent}%`
+}
+
+            }
+
+            xr.onload = async () => {
+                if(xr.status == 200){
+                    indicator.innerText = "File Uploaded and Splitted Successfully"
+                    fakeProgress()
+
+                    //parse data
+                    const data = await JSON.parse(xr.responseText)
+                    renderoutputs(data)
+
+                    finishprogress()
+
+                    file.value = ""
+                    droppedFile = null
+                    fileDisplay.innerText = "No file Chosen"
+                    btn.disabled = false;
+                    setTimeout(() => {
+                        indicator.style.display = "none"
+                        progressBar.style.display = "none"
+                        progressBar.value = 0
+                        indicator.innerText = ""
+                    }, 4000);
+
+                    //to scroll to bottom
+                    setTimeout(() => {
+                        if(document.documentElement.offsetHeight < window.innerHeight){
+                        window.scrollTo(0, document.body.scrollHeight, {beahavior : 'smooth'})
+                    }
+                    else{
+                        window.scrollTo(0, document.documentElement.scrollHeight, {behavior : 'smooth'})
+                    }
+
+                    }, 2000)
+                    
+                }
+                else{
+                    indicator.innerText = "Error Occured pls try later"
+                    setTimeout(() => {
+                        file.value = ""
+                    droppedFile = null
+                    fileDisplay.innerText = "No file Chosen"
+                    btn.disabled = false;
+                        indicator.style.display = "none"
+                        progressBar.style.display = "none"
+                        progressBar.value = 0
+                        indicator.innerText = ""
+                    }, 4000);
+                }
+            }
+
+                xr.send(formdata)
+           
+        })
+        let interval = null
+        function fakeProgress() {
+            const progressBar = document.getElementById('progressBar')
+            let progress = 0
+            interval = setInterval(() => {
+                if(progress < 100){
+                    progress++
+                    progressBar.value = progress}
+
+                if(progress >= 100){
+                clearInterval(interval)
+                finishprogress()
+            }
+            }, 400)
+            
+        }
+
+        function finishprogress(){
+            clearInterval(interval)
+            const progressBar = document.getElementById('progressBar')
+            progressBar.value = 100
+        }
+
+        function renderoutputs(data){
+            prevArea.innerHTML = ""
+            prevArea.style.display = "block"
+
+                console.log(data)
+
+                Object.values(data["audios"]).forEach(async path => {
+                    const response = await fetch(`http://127.0.0.1:5000/outputs/${path}`)
+                    const blob = await response.blob()
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = true
+                    const pathParts = path.split('/').pop().split('.')[0] || path
+                    a.textContent = pathParts
+                    prevArea.appendChild(a)
+                })
+
+
+                Object.entries(data["metadata"]).forEach(([key, mdata]) => {
+                    
+                        const p = document.createElement('p')
+                        p.style.color = "white"
+                        p.style.textTransform = "Capitalize"
+                        p.textContent = `${key} : ${mdata}`
+                        prevArea.appendChild(p)
+                }
+                )
+
+                
+                //Audio
+                Object.entries(data["audios"]).forEach(([stem, url]) => {
+                    const div = document.createElement('div')
+                    const audioDiv = document.createElement('div')
+                    const downloadImg = document.createElement('img')
+                    downloadImg.src = "https://www.freeiconspng.com/uploads/download-png-6.png"
+                    audioDiv.className = "audioDiv"
+                    downloadImg.className = "downloadImg"
+                    div.className = "placeholder"
+                    const p = document.createElement('p')
+                    p.textContent = stem + ":"
+                    p.style.color = "white"
+                    p.style.textTransform = "Capitalize"
+                    const a = document.createElement("audio")
+                    a.controls = true
+                    a.src = `http://127.0.0.1:5000/outputs/${url}`
+                    a.download = true
+                    const link = document.createElement('a')
+                    link.href = `http://127.0.0.1:5000/outputs/${url}`
+                    link.download = true
+                    link.style.padding = "10px" 
+                    
+                    downloadImg.style.width = "30px"
+                    downloadImg.style.height = "30px"
+                    
+                    div.appendChild(p)
+                    div.appendChild(audioDiv)
+                    audioDiv.appendChild(a)
+                    link.appendChild(downloadImg)
+                    audioDiv.appendChild(link)
+                    prevArea.appendChild(div)
+                }
+                )
+        }
+        
+    </script>
+</body>
+</html>
+
+
+<!--fetch("http://127.0.0.1:5000/upload-music", {
+                    method : "POST", 
+                    body : formdata})
+                .then(res => {
+                    if(!res.ok){
+                    if(res.status == 500){
+                        indicator.innerText = "Error Occured pls try later"
+                    }
+                }
+                return res.json()
+                })
+                .then(data => {
+                    indicator.innerText = "Your File has been splitted"
+
+                    // preview
+                    
+                    
+                }) -->
+              
