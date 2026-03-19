@@ -1,13 +1,18 @@
 import subprocess
+# import torch  # type: ignore
 import os
+
 import librosa
 from flask import Flask, redirect, render_template, json, jsonify, request, send_from_directory
 
 
 app = Flask(__name__)
 
-Output_dir = "outputs"
+Output_dir = "outputs"  
 
+# print("Using device:", torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+# print(torch.__version__)
+# print(torch.version.cuda)
 
 @app.route('/file')
 def file():
@@ -85,14 +90,17 @@ def split_Auido():
     #subprocess
     subprocess.run([
         "demucs",
+        "-n", "mdx",
         "--mp3",
+        "--jobs", "4",
+        "--overlap", "0.1",
         "-o",
         Output_dir,
         input_path
     ], check=True)
     
     #folder verification 
-    Output_Folder = os.path.join(Output_dir, "htdemucs", file_id)
+    Output_Folder = os.path.join(Output_dir, "mdx_extra", file_id)
     if not os.path.exists(Output_Folder):
         return jsonify({"No such folder or file exists"})
     
@@ -115,6 +123,7 @@ def split_Auido():
     song_duration = round((1 / 60) * song_duration, 2)
     results["metadata"]["Duration"] = str(song_duration) + "mins"
     results["metadata"]["Title"] = file.filename 
+    print(results)
     return results
 
 
